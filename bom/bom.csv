@@ -1,0 +1,110 @@
+variant,section,id,qty,part,spec_notes,approx_usd_line
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW1,1,PSU1: Mean Well LRS-100-24,"24 V 4.5 A, universal input. [Spec](https://www.meanwell.com/Upload/PDF/LRS-100/LRS-100-SPEC.PDF). Variant B real load ≈3 A, still fine.",20
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW2,1,PSU2 (wire): Mean Well LRS-150F-36,"36 V 4.3 A, adj. 32.4–39.6 V, universal input. [Spec](https://www.meanwell.com/Upload/PDF/LRS-150F/LRS-150F-SPEC.PDF). Not the non-F LRS-150 (selector switch).",27
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW3,1,Isolated DC SSR: Sensata/Crydom DC60S7 (or DC60S5),"Control 3.5–32 VDC (3+/4−); load 3–60 VDC 7 A (1+/2−); t_on 0.1 / t_off 0.3 ms, so 100 Hz PWM is fine. Not the DC60S3 (no margin at 2.7 A). No no-name ""SSR-xxDD"". [RS](https://uk.rs-online.com/web/p/solid-state-relays/7360882)",50
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW4,1,SSR heatsink ≤3 K/W + thermal pad,≈2–3 W,4
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW5,1,"E-stop 22 mm mushroom, latching twist-release, 3 NC (NC1 L, NC2 N, NC3 FluidNC), ≥10 A/250 VAC, finger-safe","Generic XB2/LA38 3-NC ≈ $15. Genuine Schneider XB5AS8442 (1 NC built in) + 2× ZBE102 ≈ $100. NC3 must be a gold-plated / low-level contact block (datasheet min. load ≤ 5 V / 1 mA). On variant A it switches < 1 mA (plain pull-up input), and silver contacts give random E-stops mid-cut. On B (≈12 mA opto input) silver is acceptable, but gold is still better.",25
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW6,1,IEC C14 inlet with switch + 5×20 fuse holder,,5
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW7,5,F1 mains fuses 5×20 slow-blow,T3.15 A (230 V) / T6.3 A (115 V),3
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW8,1,"IEC C13 mains cord, local plug",,5
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW9,2,F2: inline ATO holder + 5 A fuses (24 V). F3: inline 5×20 holder + T4 A 250 V fuses (wire; ATO blades are only 32 V rated). 3 spares each.,,6
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW10,1,"DC panel meter V/A 0–100 V / 10 A, internal shunt, self-powered from the measured line (≥40 V)","Wire current. Must read 0.00 A after M5, which is the shorted-SSR check. Never power it from 24 V.",7
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW11,1,Dummy load 22 Ω 100 W aluminium-clad,Wire-circuit tests (6.3); screwed to the plate,8
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW12,1,"Steel enclosure ≈ 400 × 300 × 150 mm with mounting plate ≈ 360 × 260, PE studs on body + lid",PSUs 308 × 97 + DIN band + SSR row fit. Lay it out first.,40
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW13,2,Vent grills / louvres,"Low intake, high exhaust (PSUs are convection-cooled)",4
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW14,1 set,DIN rail 35 × 300 + 14 feed-through terminals 2.5 mm² + 12-way PE busbar + jumpers + end stops + markers,"Buses L, N, +24 V out, 0 V, wire+; one PE conductor per clamp",20
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW15,7,"Cable glands: 2× M16 (4.5–10 mm) for PB-24 and PB-SIG, 2× M12 (2–5 mm) for W-HR and W-HT (or sleeve the leads with adhesive heat-shrink), 1× M12 (3–6.5 mm) for PE, 2 spare",,4
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW16,2,Freewheel diode UF5404 (3 A 400 V),1 + spare,1
+A+B,"Power box: mains, wire power, safety (PW), both variants",PW17,1 kit,"Enclosure hardware: 10× M4×10, 14× M4 nuts, 6 serrated washers M4/M5, 8× M3×5 for the PSUs (max 4 mm into the PSU)","DIN rail, SSR/heatsink, dummy load, PE studs, PSUs",4
+A+B,"Controller side, both variants (CC)",CC1,1,"USB isolator ADuM3160 (full-speed 12 Mbit/s), ≥1.5 kV, boxed: USB-B (or USB-A male) upstream, USB-A female downstream",Between PC and controller. Full speed is all the board's USB-serial chip uses. The board must be powered from 24 V: the isolator's output can't run it.,12
+A+B,"Controller side, both variants (CC)",CC2,5,Gold-contact roller microswitches Omron D2F-01L3 (4 + spare),Low-current inputs need gold contacts ([Omron](https://omronfs.omron.com/en_US/ecb/products/pdf/en-ss.pdf)),13
+A+B,"Controller side, both variants (CC)",CC3,10,100 nF ceramic capacitors 50 V,Across each limit and estop input at the board,1
+A+B,"Controller side, both variants (CC)",CC4,1,"Adafruit #4218 USB-C round panel-mount extension, 30 cm (Ø22 mm hole), data-capable",Board USB-C → case wall,6
+A+B,"Controller side, both variants (CC)",CC5,1,"USB-A ↔ USB-B 0.5 m (PC ↔ isolator, to match your isolator) + USB-A ↔ USB-C data cable 2 m (isolator ↔ case bulkhead)",,7
+A+B,"Controller side, both variants (CC)",CC6,1,U.FL → SMA bulkhead pigtail + 2.4 GHz antenna,Usually included with the board; else buy. Never power the board without it.,4
+A+B,"Controller side, both variants (CC)",CC7,1 kit,"Printed-box hardware: M3×5.7 heat-set inserts (10 per case, +12 for the rack), M3×6/×8 screws, M4×30 + nuts (fan), M5×10 + washers + T-nuts (4 per box). Exact list: [enclosure/README](../enclosure/README.md) §3",,6
+A+B,"Controller side, both variants (CC)",CC8,0.5 kg,PETG or ASA filament,Controller case (B needs VB9 too),10
+A+B,"Controller side, both variants (CC)",CC9,3,WAGO 221-415 lever connectors (5 conductors each),"Shield drains in the case, linked with a 0.5 mm² GN/YE jumper (A: 9 drains; B: 6 + rack link). B also needs VB8.",3
+A,Variant A: FluidNC 4x (VA),VA1,1,FluidNC 4x CNC Controller v1.1 (ESP32 + 4× TMC2209),"Bart Dring. [Elecrow $49](https://www.elecrow.com/4x-cnc-controller-integrated-esp32-and-tmc2209.html), out of stock 2026-11-05: click ""notify me"", or build variant B.",49
+A,Variant A: FluidNC 4x (VA),VA2,1,80 × 80 × 25 mm 24 V fan (≈0.1 A),"In the case lid, blowing onto the on-board drivers (lid grille = guard)",5
+A,Variant A: FluidNC 4x (VA),VA3,12,"Cable glands for the case: 10× M16 × 1.5 (4.5–10 mm) (4 motor, 4 limit, PB-24, PB-SIG) + 2 spare",,6
+B,Variant B: FluidNC 6x + DM542T (VB),VB1,1,"FluidNC 6x CNC Controller, integrated ESP32 (v1.2+)","Bart Dring. 12–30 V, external-driver outputs only, CP2102 USB-C. [Elecrow $49](https://www.elecrow.com/6x-cnc-controller-for-fluidnc.html) / [Tindie](https://www.tindie.com/products/33366583/6x-cnc-controller-for-fluidnc-integrated-esp32/)",49
+B,Variant B: FluidNC 6x + DM542T (VB),VB2,4,Stepper driver StepperOnline DM542T V4.0,"18–50 VDC, differential PUL±/DIR±/ENA±, S2 selector → 5 V (ships at 24 V). [Manual](https://forum.duet3d.com/assets/uploads/files/1684504031141-dm542t_v4.0.pdf). Not the DM320T (common-anode inputs).",108
+B,Variant B: FluidNC 6x + DM542T (VB),VB3,1 + 1,60 × 60 × 25 mm 24 V fan (6x case lid) + optional 80 × 80 × 25 mm 24 V fan (rack end wall),The rack also works as a chimney without its fan,8
+B,Variant B: FluidNC 6x + DM542T (VB),VB4,4 × 0.6 m,"Step/dir cables 6x → rack: 4-core shielded 0.25 mm² (or TRVVP 4×0.3), one per driver","STEP, DIR, EN, GND",5
+B,Variant B: FluidNC 6x + DM542T (VB),VB5,3 m each,1.0 mm² red/black,"24 V from the rack WAGOs to each DM542T (own pair per driver, inside the rack)",4
+B,Variant B: FluidNC 6x + DM542T (VB),VB6,1 set,Twin ferrules 2×0.5 mm²,PUL−/DIR−/ENA− jumpers,2
+B,Variant B: FluidNC 6x + DM542T (VB),VB7,21,"Cable glands: 6x case 6× M16 (4.5–10) (4 limit, 24 V in, PB-SIG) + 4× M12 (step/dir out); rack 6× M16 (4 motors, PB-24 in, 24 V out to the 6x) + 4× M12 (step/dir in); 1 spare",,10
+B,Variant B: FluidNC 6x + DM542T (VB),VB8,4,"WAGO 221-415 (rack): +24 V bus, 0 V bus (2 linked each)","7 conductors per bus: PB-24, 4 drivers, 6x feed, rack fan",4
+B,Variant B: FluidNC 6x + DM542T (VB),VB9,0.5 kg,Extra PETG/ASA for the 6x case + rack (≈0.9 kg total),,10
+A+B,"Cables and wiring consumables (CB), both variants",CB1,18 m,TRVVP (drag-chain) shielded 4×0.5 mm²,4 motor runs (15 m) + PB-SIG power box ↔ controller (3 m),26
+A+B,"Cables and wiring consumables (CB), both variants",CB2,15 m,TRVVP shielded 3×0.3 mm²,4 limit runs,14
+A+B,"Cables and wiring consumables (CB), both variants",CB3,5 m red + 6 m black,"Silicone wire 1.0 mm² (18 AWG), fine-strand","Hot-wire leads W-HR (red), W-HT (black)",10
+A+B,"Cables and wiring consumables (CB), both variants",CB4,2 m each,"1.0 mm² H07V-K brown, blue, green/yellow",Mains inside the power box,5
+A+B,"Cables and wiring consumables (CB), both variants",CB5,3 m each,"1.0 mm² red, black, orange",24 V and wire (orange) circuits inside the power box,6
+A+B,"Cables and wiring consumables (CB), both variants",CB6,3 m each,"0.5 mm² red, black","Fans, internal jumpers",3
+A+B,"Cables and wiring consumables (CB), both variants",CB7,1 set,"0.25 mm² hook-up, 4 colours","Caps, short internal links",4
+A+B,"Cables and wiring consumables (CB), both variants",CB8,5 m + 4 m,"1.5 mm² GN/YE (frame bond, lid strap, static frame jumpers, PELV bond) + 0.5 mm² GN/YE 4 m (rail and carriage bonds) + 6 M5 + 10 M3 ring lugs + serrated washers",PE bonding,7
+A+B,"Cables and wiring consumables (CB), both variants",CB9,2,"Drag chain 15×20 mm inner, bend radius ≥ R48, openable, 1 m, with end brackets",One per tower along X,14
+A+B,"Cables and wiring consumables (CB), both variants",CB10,1 set,Spiral wrap 8–10 mm (3 m) + 10 P-clips,"Head-lead loops, power-box lid harness",5
+A+B,"Cables and wiring consumables (CB), both variants",CB11,1 set,Ferrules 0.25–1.5 mm² (+ twin),Every screw terminal,10
+A+B,"Cables and wiring consumables (CB), both variants",CB12,1 set,Insulated ring lugs M4/M5,"Tip blocks, PE",4
+A+B,"Cables and wiring consumables (CB), both variants",CB13,1 set,Heat-shrink incl. adhesive-lined,Motor/limit splices,6
+A+B,"Cables and wiring consumables (CB), both variants",CB14,1 set,"Cable ties, adhesive mounts, 10 T-slot tie mounts, labels",Routing,8
+A+B,"Cables and wiring consumables (CB), both variants",CB15,1,Solder,Splices,3
+A+B,"Cables and wiring consumables (CB), both variants",CB16,3.5 m,"2-core 2×1.0 mm² red/black DC cable (PVC or silicone, not grey mains cable)","PB-24 (3 m) + B: rack → 6x (0.5 m). Label both ends ""24 V DC"".",4
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR1,2,2040 × 1900 mm,"Base rails B1 (front), B2 (back), standing (40 tall)",43
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR2,2,2040 × 1250 mm,"X-beams (root, tip), standing. Tap both end holes M5.",28
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR3,2,2040 × 1250 mm,"Bed supports C1, C2",28
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR4,2,2040 × 500 mm,Tower posts. Tap both ends M5.,12
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR5,24,2040 cast corner brackets + M5 screws,"8 X crossings, 8 C crossings, 4 posts, 4 for P6, spares 0",12
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR6,150,M5 drop-in T-nuts,≈114 used,11
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR7,100,M3 drop-in T-nuts,MGN12 rails (≈64 used),6
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR8,1,"Bed 18 mm MDF/ply 1300 × 700, sealed 2× PU",,25
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR9,4,Rubber pads,Feet,4
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR10,1 set,Foam hold-down: 4–6 kg steel offcuts + pins/carpet tape + 15–20 mm scrap-foam spacer strips,,5
+A+B,"Frame (FR): 20-series T-slot, 6 mm slot",FR11,1,"Box mounting rail: 2040 offcut lying flat, 250 mm (A) / 480 mm (B), + 4 M5 T-nuts + 2 wood screws/clamps to the bench","Printed boxes bolt to it, beside the power box",5
+A+B,"Motion and drive (M, L, D)",M1,5,NEMA17 17HS19-2004S1 (4 + spare),"2.0 A, 59 Ncm, 1 m lead. Black/green = coil A, red/blue = coil B (≈1.4 Ω, verify). [StepperOnline](https://omc-stepperonline.com/nema-17-bipolar-59ncm-84oz-in-2a-42x48mm-4-wires-w-1m-cable-and-connector.html)",42
+A+B,"Motion and drive (M, L, D)",L1,2,MGN12 rail 1200 mm + 2× MGN12H blocks,Chord axes,64
+A+B,"Motion and drive (M, L, D)",L2,2,MGN12 rail 400 mm + 1× MGN12H,Vertical axes,28
+A+B,"Motion and drive (M, L, D)",L3,1,Lithium grease,,3
+A+B,"Motion and drive (M, L, D)",D1,10 m,"GT2 belt 6 mm, glass-fibre",2 × ≈2.6 m,8
+A+B,"Motion and drive (M, L, D)",D2,3,"GT2 20T pulley, 5 mm bore",2 + spare,4
+A+B,"Motion and drive (M, L, D)",D3,3,"GT2 20T toothed idler, 5 mm bore",2 + spare,4
+A+B,"Motion and drive (M, L, D)",D4,4,Steel NEMA17 L-bracket,2 chord motors + 2 idler brackets,10
+A+B,"Motion and drive (M, L, D)",D5,2,M5 × 40 bolt + 4 washers + nylock,Idler axles,2
+A+B,"Motion and drive (M, L, D)",D6,4,GT2 belt clamps,On belt tab P4,4
+A+B,"Motion and drive (M, L, D)",D7,2,"T8×2 (2 mm lead, single start) lead screw 400 mm + flanged brass nut",Verticals. Not T8×8 (back-drives).,20
+A+B,"Motion and drive (M, L, D)",D8,2,Flexible coupler 5 → 8 mm,,4
+A+B,"Motion and drive (M, L, D)",D9,2,KFL08 flange bearing,Screw bottom,4
+A+B,"Motion and drive (M, L, D)",D10,2,T8 nut bracket (22 mm flange),On head plate. Measure its nut-centre height (4.3).,4
+A+B,"Wire heads, wire, tension (H)",H1,1 reel,"Ni80Cr20 0.4 mm, 10–20 m",≈8.7 Ω/m → ≈12.6 Ω at 1.45 m,10
+A+B,"Wire heads, wire, tension (H)",H2,10,MIG contact tips M6 × 25 for 0.6 mm wire (CuCrZr),Guide + current feed,8
+A+B,"Wire heads, wire, tension (H)",H3,2,Tip blocks (from ST5),"20×20×30 alu: M6 through, M4 lug, 2× M4 mounting",0
+A+B,"Wire heads, wire, tension (H)",H4,1,"FR4/G10 5 mm, 100 × 150",Insulators,8
+A+B,"Wire heads, wire, tension (H)",H5,2,POM (Delrin) V-wheel with 625ZZ,Tip-side deflector. Plastic = insulating.,3
+A+B,"Wire heads, wire, tension (H)",H6,1,"Constant-force spring ≈20 N, ≥150 mm usable extension, drum",McMaster 9293K / Gutekunst. Alternative: 2 kg weight in a 50 mm PVC tube.,10
+A+B,"Wire heads, wire, tension (H)",H7,2 m,"Aramid (Kevlar) line 1 mm, ≥50 kg",Insulating links,4
+A+B,"Wire heads, wire, tension (H)",H8,20,Crimp sleeves 1.0 mm,Wire loops,2
+A+B,"Wire heads, wire, tension (H)",H9,4,Nylon M4 screws + nuts,Root-side anchor,3
+A+B,Fasteners (FX),FX1,≈150,"M5 button-head DIN 7380, 8/10/12/16 mm","Frame, brackets",12
+A+B,Fasteners (FX),FX2,40 + 10,M5 washers + nylock,,3
+A+B,Fasteners (FX),FX3,≈200,M3 socket cap 6–20 mm,"Rails, blocks, motors",8
+A+B,Fasteners (FX),FX4,50,M3 washers,,2
+A+B,Fasteners (FX),FX5,30 + 4,M4 SHCS 8–20 + nuts + 4× M4×12 countersunk DIN 7991,"Tip blocks, lugs",5
+A+B,Fasteners (FX),FX6,1,M5 shoulder bolt Ø6 × 10,Spring drum,3
+A+B,Fasteners (FX),FX7,8,M3 × 5,PSU mounting (max 4 mm into the PSU),1
+A+B,Fasteners (FX),FX8,8,M2 × 12 + nuts,D2F switches,2
+A+B,Fasteners (FX),FX9,1,"Thread-locker, medium","Set screws, couplers",4
+A+B,Fasteners (FX),FX11,8,M5×25 countersunk DIN 7991,Bed down into T-nuts in C1/C2,1
+A+B,Fasteners (FX),FX12,2 sets,Chain standoff: 2× M5 × 30 mm aluminium spacers + 2020 offcut 100 mm (or 6 mm plate 100 × 40) per tower,"Chain fixed end ≥80 mm out from the X-beam, outboard of belt and motor",4
+A+B,Raw stock (ST) and fabricated parts,ST1,2,"6061 plate 8 mm, 160 × 130",P1,15
+A+B,Raw stock (ST) and fabricated parts,ST2,6,"6061 plate 6 mm: 2× 80 × 140, 4× 70 × 60","P2, P3, P6",15
+A+B,Raw stock (ST) and fabricated parts,ST3,120 mm,Alu angle 30×30×3,P4,2
+A+B,Raw stock (ST) and fabricated parts,ST4,150 mm,Alu angle 20×20×2,P5,2
+A+B,Raw stock (ST) and fabricated parts,ST5,70 mm,6061 bar 20×20,Tip blocks,2
+A+B,Riden option,R1,1,Riden RD6006 (USB version),"constant-current wire supply, controlled by wingcut",65
+A+B,Riden option,R2,1,ADuM3160 USB isolator (second),for the Riden USB,12
+A+B,Riden option,R3,1,Mean Well LRS-150F-48 instead of PW2,same price,0
+A+B,Riden option,R4,1,USB cable + M16 gland,Riden to PC via isolator,5
+A+B,Riden option,R5,-1,drop PW10 panel meter,Riden shows V/A,-7

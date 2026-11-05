@@ -1,0 +1,264 @@
+# =============================================================================
+# FluidNC config: 4-axis CNC hot-wire foam cutter (wingcut-fluidnc, variant A)
+# Board   : Bart Dring "4x CNC Controller (Integrated ESP32 and TMC2209)", v1.1 / "V3"
+#           (Elecrow; 6 inputs, 4x 5V out, 2x MOSFET, 0-10V, RS485, 1 module socket)
+# Drivers : 4x on-board TMC2209, UART mode
+# Motors  : 4x 17HS19-2004S1 (2.0 A)
+# Firmware: written and key-checked against FluidNC v4.1.1 source (tag v4.1.1).
+#           Install v4.1.1 or later with installer.fluidnc.com; never v4.0.4 (marked BAD).
+#
+# PIN MAP (from the current wiki page http://wiki.fluidnc.com/en/hardware/official/new-page/4x_CNC_with_esp32
+# and its pinout image /hardware/4x_with_pinout.png; the older "TMC2209_4_Axis" page and
+# the contributed/4x_2209 configs are for the EARLIER 2-socket board: their TMC UART is
+# gpio.16/gpio.4, which clashes with the MOSFET on gpio.4 here. Don't mix them.)
+#
+#   Driver   terminal  TMC addr  step     dir      disable   limit input (terminal label)
+#   X root chord  TB1    0       i2so.2   i2so.1   i2so.0    gpio.36  (X min, FRONT)
+#   Y root vert   TB3    1       i2so.5   i2so.4   i2so.7    gpio.39  (Y max, TOP)
+#   Z tip chord   TB4    2       i2so.10  i2so.9   i2so.8    gpio.34  (Z min, FRONT)
+#   A tip vert    TB5    3       i2so.13  i2so.12  i2so.15   gpio.35  (A max, TOP)
+#   TMC UART1: TX gpio.26, RX gpio.2.   I2SO: BCK gpio.22, DATA gpio.21, WS gpio.17
+#   Hot wire : MOSFET "gpio.4" terminal (TB10) -> SSR 4(-);  TB10 "VMot" -> SSR 3(+)
+#   E-stop   : input gpio.33 (third E-stop NC contact)
+#   Spare    : input gpio.32; MOSFET gpio.12; 5V outs gpio.13/14; module socket gpio.25/27
+#   Each limit input sits next to its own Gnd terminal. The limit inputs above match the
+#   driver letters printed on the StallGuard solder pads (X=36, Y=39, Z=34, A=35).
+#   Leave those 4 solder jumpers OPEN: if one is bridged, the TMC DIAG pin drives that
+#   input and the switch is ignored.
+#
+# INPUTS: "All of the inputs have external pullup resistors ... Normally closed are active
+# high" (wiki). Gold switches are wired NC to Gnd, so closed = low = OK, and open (switch hit OR
+# broken wire) = high = triggered. Fail-safe, no attribute needed. Do NOT add :pu
+# (gpio.34-39 have no internal pull-ups anyway). Do NOT add :low (that would invert the fail-safe).
+#
+# Do not wire anything to the "gpio.4" / "gpio.12" 5V-OUTPUT terminals: they switch together
+# with the MOSFETs. gpio.12 is an ESP32 boot-strapping pin; pulling it high stops the board booting.
+# =============================================================================
+
+board: FluidNC 4X 2209 V3
+name: wingcut-fluidnc hot wire (4x TMC2209)
+meta: wingcut-fluidnc variant A, wingcut axes X Y Z A = root-x root-y tip-x tip-y
+
+stepping:
+  engine: I2S_STATIC        # wiki-recommended for this board (motor pins are on the I2S shift register)
+  idle_ms: 255              # 255 = never auto-disable: holds position between cuts
+  pulse_us: 4               # wiki value; max ~62-125 k steps/s, need 24 k (vertical 1600 x 900/60)
+  dir_delay_us: 4           # wiki value (TMC2209 needs only 20 ns)
+  disable_delay_us: 0
+  segments: 12              # default; feed-hold latency ~ 10 ms x segments
+
+uart1:                      # single-wire UART to all four TMC2209s (addresses 0-3 are hard-wired)
+  txd_pin: gpio.26
+  rxd_pin: gpio.2
+  baud: 115200
+  mode: 8N1
+
+i2so:
+  bck_pin: gpio.22
+  data_pin: gpio.21
+  ws_pin: gpio.17
+
+spi:
+  miso_pin: gpio.19
+  mosi_pin: gpio.23
+  sck_pin: gpio.18
+
+sdcard:
+  cs_pin: gpio.5
+  card_detect_pin: NO_PIN
+
+start:
+  must_home: true           # boots in alarm until $H, so soft limits always mean something
+  check_limits: true        # a switch open at boot (parked on it, or broken wire) -> alarm
+
+verbose_errors: true
+
+axes:
+  shared_stepper_disable_pin: NO_PIN
+  homing_runs: 2
+
+  # ---------------- X = ROOT tower chord. GT2 20T: 200 x 16 / 40 = 80 steps/mm -------------
+  x:
+    steps_per_mm: 80.000
+    max_rate_mm_per_min: 1500.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 1000.000
+    soft_limits: true
+    homing:
+      cycle: 2                  # after the verticals (cycle 1) have lifted the wire clear
+      positive_direction: false # switch at the FRONT (min) end
+      mpos_mm: 0.000            # X0 = front, 3 mm off the switch after pull-off; +X = away from you
+      feed_mm_per_min: 100.000
+      seek_mm_per_min: 1000.000
+      settle_ms: 250
+      seek_scaler: 1.100
+      feed_scaler: 1.100
+    motor0:
+      limit_neg_pin: gpio.36
+      hard_limits: true
+      pulloff_mm: 3.000
+      tmc_2209:
+        uart_num: 1
+        addr: 0
+        r_sense_ohms: 0.110     # board sense resistor (wiki)
+        run_amps: 1.000         # RMS. Wiki: forced air needed above 1.2 A. Loads are tiny; raise only if steps are lost
+        hold_amps: 0.500        # RMS, at standstill (motors stay enabled: idle_ms 255)
+        microsteps: 16
+        run_mode: StealthChop   # chords move slowly (2-4 mm/s while cutting): smoothest, quietest
+        homing_mode: StealthChop
+        stallguard: 0
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        use_enable: false
+        direction_pin: i2so.1   # jogs the wrong way? -> i2so.1:low
+        step_pin: i2so.2
+        disable_pin: i2so.0
+
+  # ---------------- Y = ROOT tower vertical. T8x2 single start: 3200 / 2 = 1600 steps/mm -----
+  y:
+    steps_per_mm: 1600.000
+    max_rate_mm_per_min: 900.000      # 7.5 rev/s, 24 k steps/s; drop to 600 if it stalls
+    acceleration_mm_per_sec2: 100.000
+    max_travel_mm: 290.000            # PLACEHOLDER, measure before relying on hard limits:
+                                      #   = mpos_mm - (lowest safe tip height above bed + 2)
+    soft_limits: true
+    homing:
+      cycle: 1                  # verticals first, together: lift the cold wire clear of the foam
+      positive_direction: true  # switch at the TOP (max) end
+      mpos_mm: 300.000          # PLACEHOLDER, measure: wire-contact height above the BED TOP at home
+                                #   (Y0 = bed top). Soft range becomes [mpos - max_travel, mpos].
+      feed_mm_per_min: 60.000
+      seek_mm_per_min: 600.000
+      settle_ms: 250
+      seek_scaler: 1.100
+      feed_scaler: 1.100
+    motor0:
+      limit_pos_pin: gpio.39
+      hard_limits: true
+      pulloff_mm: 2.000
+      tmc_2209:
+        uart_num: 1
+        addr: 1
+        r_sense_ohms: 0.110
+        run_amps: 1.000
+        hold_amps: 0.500        # T8x2 is self-locking: the head doesn't drop with low hold current
+        microsteps: 16
+        run_mode: CoolStep      # FluidNC "CoolStep" = SpreadCycle chopper: keeps torque at 7.5 rev/s
+        homing_mode: CoolStep   #   on 24 V, where StealthChop's voltage-mode regulation runs out
+        stallguard: 0
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        use_enable: false
+        direction_pin: i2so.4
+        step_pin: i2so.5
+        disable_pin: i2so.7
+
+  # ---------------- Z = TIP tower chord (same as X) ----------------------------------------
+  z:
+    steps_per_mm: 80.000
+    max_rate_mm_per_min: 1500.000
+    acceleration_mm_per_sec2: 200.000
+    max_travel_mm: 1000.000
+    soft_limits: true
+    homing:
+      cycle: 2
+      positive_direction: false
+      mpos_mm: 0.000            # TRAM: set to the measured X-vs-Z offset so that X = Z means the
+                                #   wire is square to the bed in plan (02 doc, "Tram")
+      feed_mm_per_min: 100.000
+      seek_mm_per_min: 1000.000
+      settle_ms: 250
+      seek_scaler: 1.100
+      feed_scaler: 1.100
+    motor0:
+      limit_neg_pin: gpio.34
+      hard_limits: true
+      pulloff_mm: 3.000
+      tmc_2209:
+        uart_num: 1
+        addr: 2
+        r_sense_ohms: 0.110
+        run_amps: 1.000
+        hold_amps: 0.500
+        microsteps: 16
+        run_mode: StealthChop
+        homing_mode: StealthChop
+        stallguard: 0
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        use_enable: false
+        direction_pin: i2so.9
+        step_pin: i2so.10
+        disable_pin: i2so.8
+
+  # ---------------- A = TIP tower vertical (same as Y). Linear mm, like every FluidNC axis ----
+  a:
+    steps_per_mm: 1600.000
+    max_rate_mm_per_min: 900.000
+    acceleration_mm_per_sec2: 100.000
+    max_travel_mm: 290.000            # PLACEHOLDER, as for Y
+    soft_limits: true
+    homing:
+      cycle: 1
+      positive_direction: true
+      mpos_mm: 300.000          # PLACEHOLDER, measure as for Y (tram: Y and A heights must agree)
+      feed_mm_per_min: 60.000
+      seek_mm_per_min: 600.000
+      settle_ms: 250
+      seek_scaler: 1.100
+      feed_scaler: 1.100
+    motor0:
+      limit_pos_pin: gpio.35
+      hard_limits: true
+      pulloff_mm: 2.000
+      tmc_2209:
+        uart_num: 1
+        addr: 3
+        r_sense_ohms: 0.110
+        run_amps: 1.000
+        hold_amps: 0.500
+        microsteps: 16
+        run_mode: CoolStep
+        homing_mode: CoolStep
+        stallguard: 0
+        stallguard_debug: false
+        toff_disable: 0
+        toff_stealthchop: 5
+        toff_coolstep: 3
+        use_enable: false
+        direction_pin: i2so.12
+        step_pin: i2so.13
+        disable_pin: i2so.15
+
+control:
+  # Third NC contact of the E-stop -> input gpio.33 + Gnd (+100 nF). Closed = low = OK.
+  # Pressed (or broken wire) = active -> hard stop, spindle (wire) off via off_on_alarm, critical
+  # alarm that only a soft reset clears. Without this, releasing the E-stop while USB keeps the
+  # ESP32 alive would re-heat the wire and resume the job with unconfigured drivers.
+  estop_pin: gpio.33
+# No probe:, coolant:, parking
+# (parking.enable defaults to false). Spare input gpio.32 stays unused.
+
+# ---------------- Hot wire = PWM "spindle" on MOSFET gpio.4 -> isolated DC SSR ---------------
+# PWM spindles are not "rate adjusted", so heat stays constant through G0/G1/G4 (laser mode $32 = 0).
+# wingcut Pause: feed hold, then 0x9E (spindle stop) once in Hold:0. FluidNC v4.1.1 Protocol.cpp
+# turns the PWM off (spinDown); Resume (~) restores M3 S<n>, waits spinup_ms x S/1000, then moves.
+# Nothing extra to configure.
+PWM:
+  pwm_hz: 100               # DC60 t_on <=0.1 ms / t_off <=0.3 ms -> <=4 % duty error at 100 Hz
+  output_pin: gpio.4
+  enable_pin: NO_PIN        # no relay in this design
+  direction_pin: NO_PIN
+  disable_with_s0: false
+  s0_with_disable: true     # M5 forces duty 0
+  spinup_ms: 3000           # reheat time before motion; scales with S: S600 -> 1.8 s, S1000 -> 3 s
+  spindown_ms: 0
+  tool_num: 0
+  speed_map: 0=0% 1000=100% # S0..S1000 = 0..100 % duty. S1000 = DC (Riden option)
+  off_on_alarm: true        # wire off on any alarm (hard limit, homing fail, ...)

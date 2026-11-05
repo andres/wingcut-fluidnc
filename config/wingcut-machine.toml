@@ -1,0 +1,69 @@
+# wingcut machine config for the wingcut-fluidnc cutter. Same file for both variants (FluidNC 4x or 6x + DM542T).
+# Keys checked against wingcut src/config.rs (struct Machine / Connection / RidenConfig,
+# deny_unknown_fields). Values marked PLACEHOLDER must be measured (see 02-firmware-commissioning.md).
+#
+# wingcut writes MACHINE coordinates: keep the G54 work offset at zero
+# (G10 L2 P1 X0 Y0 Z0 A0). Place each block by its measured machine position (x0, y0, s_root).
+
+tower_spacing = 1450              # mm, root wire contact to tip wire contact. MEASURE after stringing
+axes = ["X", "Y", "Z", "A"]       # root-x, root-y, tip-x, tip-y = drivers X, Y, Z, A on the 4x board
+
+# Shared by both towers. Keep inside FluidNC's soft limits:
+#   x: FluidNC chord range is [homing mpos, mpos + 1000]. 2 mm margin covers a tram offset of up to
+#      +/-2 mm on Z (fluidnc z: homing: mpos_mm). Upper 995 = 5 mm short of the rear end.
+#   y: FluidNC vertical range is [mpos - max_travel, mpos] = [10, 300] with the PLACEHOLDERS.
+#      Set y = [that min + 2, that max - 2] once Y/A mpos_mm and max_travel_mm are measured.
+limits = { x = [2, 995], y = [12, 298] }   # y = PLACEHOLDER
+
+feed_cut = 180                    # mm/min at the faster block face (2-4 mm/s typical)
+feed_rapid = 800                  # mm/min, wire off. Below the 900 mm/min vertical max_rate
+
+# ---- Wire heat -------------------------------------------------------------------------
+# BASE (LRS-150F-36 + SSR, PWM): S = 1000 x (I_target / I_full)^2. S600 = 2.1-2.2 A equivalent
+# at I_full = 2.7-2.86 A. PLACEHOLDER: replace with your calibrated S (02 doc, "Wire bring-up").
+# Use ONE S per cut. FluidNC stops motion on any S change while the wire is on.
+heat_on = "M3 S600"
+# RIDEN OPTION: the Riden sets the current; the SSR only switches. Use this line instead:
+# heat_on = "M3 S1000"
+heat_off = "M5"
+preheat_s = 2.0                   # G4 after heat_on. FluidNC also waits spinup_ms x S/1000
+                                  # (1.8 s at S600, 3 s at S1000) before this dwell starts
+le_dwell_s = 0.0
+
+# Kerf (mm) vs face speed (mm/min). PLACEHOLDERS: replace with your own test-cut results
+# (02 doc, "Kerf"). Redo the table for each foam type and heat setting.
+kerf = [
+  { feed = 120, kerf = 1.1 },
+  { feed = 180, kerf = 0.8 },
+  { feed = 240, kerf = 0.6 },
+]
+
+te_min_thickness = 0.8            # mm
+max_segment = 0.2                 # mm
+lead_clearance = 5.0              # mm in front of the block where the wire starts/ends
+park_x = 2.0                      # tower x after the cut. Must lie inside limits.x
+miter_limit = 4.0
+
+[connection]
+kind = "serial"                   # serial | websocket | telnet | simulator
+# Use the stable by-id path: with the Riden plugged in, ttyUSB0/ttyUSB1 can swap between boots.
+# ls -l /dev/serial/by-id/   then paste the board's entry here. /dev/ttyUSB0 works for a first test.
+port = "/dev/ttyUSB0"
+baud = 115200
+host = "fluidnc.local"            # Wi-Fi fallback (telnet 23 is the safer Wi-Fi choice)
+websocket_port = 81
+telnet_port = 23
+rx_buffer = 127                   # FluidNC-safe. Don't raise
+sim_speed = 1.0
+
+[riden]
+enabled = false                   # BASE build. Riden option: true (and heat_on = "M3 S1000")
+simulated = false
+port = "/dev/ttyUSB1"             # through the ADuM3160 isolator; use /dev/serial/by-id/... as above
+baud = 115200                     # must match the RD6006 menu
+address = 1                       # must match the RD6006 menu
+current = 2.0                     # A. PLACEHOLDER: start 2.0, tune 2.0-2.3 by kerf/finish
+max_voltage = 36.0                # V. 2.3 A x ~13 ohm ~= 30 V needed. 36 V leaves headroom and stays
+                                  # under the RD6006's ~43 V max from a 48 V input
+break_detect = true
+break_fraction = 0.5              # pause if the current drops below 50 % of the set value
