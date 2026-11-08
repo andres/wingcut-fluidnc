@@ -18,14 +18,14 @@ This repo contains everything needed to build the machine and connect it to wing
 | Frame | 20×40 aluminium T-slot extrusion, MGN12 rails, GT2 belts (chord), T8×2 lead screws (vertical) |
 | Electronics | FluidNC **4x** board (variant A) or **6x + 4× DM542T** (variant B); separate floating 36 V wire supply, PWM'd through an isolated SSR; 3-NC E-stop; USB isolator |
 | Boxes | steel **power box** (mains) + **3D-printed controller box** (24 V) on the frame |
-| Cost | **≈ $990** (A) / **≈ $1,130** (B) + shipping, every screw counted ([BOM](bom/bom.csv)) |
+| Cost | US retail, recommended mix: **≈ $1,610** (A) / **≈ $1,780** (B) + shipping. AliExpress-heavy: ≈ $1,250–1,350 (A). Every screw counted, with two US buy links per line ([BOM](bom/bom.csv)). |
 
 ## Choose a variant
 
 | | Variant A: FluidNC 4x | Variant B: FluidNC 6x + DM542T |
 |---|---|---|
 | Drivers | 4× TMC2209 on the board, set over UART | 4× external DM542T V4.0 (set by DIP switches) |
-| Cost | lower (≈ −$140) | higher |
+| Cost | lower (≈ −$170 in the US) | higher |
 | Printed parts | `controller_case_4x` | `controller_case_6x` + `dm542t_rack` |
 | Config | [config/fluidnc-4x-hotwire.yaml](config/fluidnc-4x-hotwire.yaml) | [config/fluidnc-6x-hotwire.yaml](config/fluidnc-6x-hotwire.yaml) |
 | Pick it if | it's in stock (Elecrow: "notify me"); **recommended** | the 4x is unavailable, or you want external drivers |
