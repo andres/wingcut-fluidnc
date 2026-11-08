@@ -19,15 +19,12 @@ feed_cut = 180                    # mm/min at the faster block face (2-4 mm/s ty
 feed_rapid = 800                  # mm/min, wire off. Below the 900 mm/min vertical max_rate
 
 # ---- Wire heat -------------------------------------------------------------------------
-# BASE (LRS-150F-36 + SSR, PWM): S = 1000 x (I_target / I_full)^2. S600 = 2.1-2.2 A equivalent
-# at I_full = 2.7-2.86 A. PLACEHOLDER: replace with your calibrated S (02 doc, "Wire bring-up").
-# Use ONE S per cut. FluidNC stops motion on any S change while the wire is on.
-heat_on = "M3 S600"
-# RIDEN OPTION: the Riden sets the current; the SSR only switches. Use this line instead:
-# heat_on = "M3 S1000"
+# Riden RD6006 (standard) sets the wire current ([riden] below); the SSR only switches on/off.
+# Always S1000: PWM below that would fight the Riden current loop.
+heat_on = "M3 S1000"
 heat_off = "M5"
 preheat_s = 2.0                   # G4 after heat_on. FluidNC also waits spinup_ms x S/1000
-                                  # (1.8 s at S600, 3 s at S1000) before this dwell starts
+                                  # (3 s at S1000) before this dwell starts
 le_dwell_s = 0.0
 
 # Kerf (mm) vs face speed (mm/min). PLACEHOLDERS: replace with your own test-cut results
@@ -57,7 +54,7 @@ rx_buffer = 127                   # FluidNC-safe. Don't raise
 sim_speed = 1.0
 
 [riden]
-enabled = false                   # BASE build. Riden option: true (and heat_on = "M3 S1000")
+enabled = true                    # Riden RD6006 is standard in this build
 simulated = false
 port = "/dev/ttyUSB1"             # through the ADuM3160 isolator; use /dev/serial/by-id/... as above
 baud = 115200                     # must match the RD6006 menu

@@ -25,20 +25,20 @@ Prices (≈) are typical Nov-2026 street prices, excluding shipping and VAT. EUR
 | Wire | 0.4 mm Ni80Cr20 through MIG contact tips, ≈20 N constant-force spring |
 | Controller | **A:** FluidNC 4x (ESP32 + 4× TMC2209). **B:** FluidNC 6x (ESP32) + 4× DM542T. |
 | Boxes | **Steel power box** (mains, PSUs, SSR, E-stop, meter) + **3D-printed controller box** on the frame (24 V only) |
-| Power | **24 V** (controller + motors) + **separate floating 36 V** wire supply. Heat = PWM through an **isolated DC SSR**. Option: Riden RD6006 constant current. |
+| Power | **24 V** (controller + motors) + a **separate floating 48 V supply feeding a Riden RD6006 constant-current module** for the wire. wingcut sets the current, reads V/A and detects a broken wire. An **isolated DC SSR** switches the wire on/off from FluidNC (M3/M5, alarms). |
 | PC link | USB through an **ADuM3160 USB isolator** (or Wi-Fi). wingcut runs on Linux (also macOS/Windows). |
 | Safety | 3-NC E-stop: cuts AC (L+N) to both PSUs **and** drives FluidNC `estop_pin`. The wire circuit floats. Frame bonded to PE. wingcut Pause turns the wire off. |
 | Axis letters | wingcut default `["X","Y","Z","A"]` = **X root chord, Y root vertical, Z tip chord, A tip vertical**. Root tower = left, tip tower = right. |
 
 ### Cost
 
-**Buying in the USA** (prices checked 2026-11-07, links in §2; excluding shipping and sales tax):
+**Buying in the USA** (prices checked 2026-11-07/08, links in §2; Riden standard; the first three columns exclude shipping, duty and sales tax):
 
 | Build | ★ Recommended mix | All budget picks | All quality picks |
 |---|---|---|---|
-| **Variant A (4x board)** | **≈ $1,610** | ≈ $1,790 | ≈ $3,000 |
-| **Variant B (6x + 4× DM542T)** | **≈ $1,780** | ≈ $1,990 | ≈ $3,210 |
-| Riden RD6006 option (net) | ≈ +$125 | | |
+| **Variant A (4x board)** | **≈ $1,730** | ≈ $1,910 | ≈ $3,120 |
+| **Variant A, real mixed cart: authorised + AliExpress, incl. shipping, duty and 7 % tax (§2.13)** | **≈ $1,590 landed** (range $1,380–1,630) | | |
+| **Variant B (6x + 4× DM542T)** | **≈ $1,890** | ≈ $2,120 | ≈ $3,330 |
 
 - **★ Recommended mix:** the quality source where fakes or safety matter (Mean Well PSUs, Crydom SSR, E-stop, gold switches, drivers, controller board, WAGO, USB isolator, meter, motors, NiCr), and the cheaper source everywhere else.
 - **"All budget" costs more than the mix:** on several lines the Amazon "budget" pack is pricier than Digi-Key for the exact quantity.
@@ -47,7 +47,7 @@ Prices (≈) are typical Nov-2026 street prices, excluding shipping and VAT. EUR
   - The estimates assume AliExpress per-unit pricing.
   - US retail sells packs and spools (100 T-nuts, a 25 ft wire spool, 10 glands), so you pay for spares.
   - A few lines share one purchase (one red/black spool covers CB5, CB16 and VB5; one ferrule kit covers CB11 and VB6), so the mix total double-counts ≈ $30–50.
-- **To get closer to the estimate:** order the generic items (cable, glands, T-nuts, brackets, belts, pulleys, heat-shrink, standoffs) from AliExpress in one cart, and keep the ★ quality picks for the safety and fake-prone parts. Expect ≈ $1,250–1,350 for A and 2–4 weeks of shipping.
+- **The real mixed cart (§2.13)** does exactly that: authorised sellers for the safety and fake-prone parts, AliExpress for the rest. It lands at ≈ $1,590 including ≈ $230 of duty and sales tax. 78 AliExpress lines are still estimates.
 
 | Option | ≈ USD | ≈ EUR |
 |---|---|---|
@@ -63,7 +63,7 @@ Prices (≈) are typical Nov-2026 street prices, excluding shipping and VAT. EUR
 
 Two independent audits are behind this list ([audit](audit.md)). Going below it means a plywood/drawer-slide machine with a ~1 m wire.
 
-The §2 "≈ USD line" column is that AliExpress-level estimate (A ≈ $990, B ≈ $1,130). The real US prices per source are in the last column, with the ★ pick marked.
+The §2 "≈ USD line" column is that AliExpress-level estimate (A ≈ $1,068, B ≈ $1,208, Riden included). The real US prices per source are in the last column, with the ★ pick marked.
 
 ```
 TOP VIEW (W = wire/span direction, X = chord direction)
@@ -94,35 +94,33 @@ SIDE VIEW OF ONE TOWER (looking along the wire, inboard = right)
 ```
 STEEL POWER BOX (mains + wire power)
  MAINS ─ IEC inlet (switch + F1) ─ E-STOP NC1 (L), NC2 (N) ─┬─► PSU1 LRS-100-24 ─ F2 5A ─► "24V OUT" ──(cable PB-24)──┐
-                                                             └─► PSU2 LRS-150F-36 (wire, floating)                 │
+                                                             └─► PSU2 LRS-150F-48 ─► Riden RD6006 (CC 2.0–2.3 A)   │
  E-STOP NC3 ────────────────────────────────────────────────────────────────────(cable PB-SIG)───────────────────┤
  SSR control 3(+)/4(−) ◄────────────────────────────────────────────────────────(cable PB-SIG)───────────────────┤
- PSU2 +V ─ F3 4A ─ wire+ ─┬─► W-HR ─ ROOT tip ═══ wire ═══ TIP tip ─ W-HT ─┬─ SSR 1(+)  SSR 2(−) ─ meter shunt ─ PSU2 −V
+ RD6006 out+ ─ F3 4A ─ wire+ ─┬─► W-HR ─ ROOT tip ═══ wire ═══ TIP tip ─ W-HT ─┬─ SSR 1(+)  SSR 2(−) ─ meter shunt ─ RD6006 out−
                           └──────── freewheel diode (cathode → wire+) ─────┘ (anode)
  PE busbar ─► inlet PE, PSU FG ×2, box body + lid, frame bond, cable shields
                                                                                                                   │
-PRINTED CONTROLLER BOX (24 V only, on the frame)  ◄────────────────────────────────────────────────────────────────┘
+PRINTED CONTROLLER BOX (24 V only, on the bench)  ◄────────────────────────────────────────────────────────────────┘
  Variant A: 4x board (VMot 24 V) ─ TMC2209 ×4 ─► motors X, Y, Z, A
  Variant B: 6x board (VMot 24 V) ─ STEP/DIR/EN ×4 ─► DM542T ×4 (printed rack, 24 V) ─► motors X, Y, Z, A
  Both:  limits X/Y/Z/A (gold NC to Gnd, 100 nF) ─► inputs
-        E-stop NC3 ─► estop input          MOSFET "gpio.4" (PWM 100 Hz, M3 S0–1000) ─► SSR control
+        E-stop NC3 ─► estop input          MOSFET "gpio.4" (M3 S1000 = on, M5 = off) ─► SSR control
         USB ─► ADuM3160 USB isolator ─► PC running wingcut          (or Wi-Fi)
-
-RIDEN OPTION: PSU2 = LRS-150F-48 ─► RD6006 (CC 2.0–2.3 A) ─► wire+ / SSR loop (SSR on/off only, M3 S1000)
-              RD6006 USB ─► second ADuM3160 isolator ─► PC (wingcut)
+        RD6006 USB ─► second ADuM3160 isolator ─► PC (wingcut sets the current, reads V/A, broken-wire pause)
 ```
 
 Why:
 - **Wire-off paths:**
   - **E-stop** cuts AC to everything (hardware, PC-independent). Its **third NC contact** drives FluidNC's `estop_pin`, so even if the controller stays alive (variant A may stay up through some USB isolators), FluidNC hard-stops, switches the wire off and stays in alarm. The 6x (B) simply powers off and reboots. **Releasing the E-stop never restarts the wire or the job**: RESET → (`$MI` on variant A) → `$H` is needed.
   - **SSR** opens on M5, any FluidNC alarm (`off_on_alarm`), reset, and wingcut Pause/Stop.
-  - **Riden option:** wingcut also switches the Riden output off after every cut and on a broken wire.
+  - **Riden:** wingcut also switches the Riden output off after every cut and on a broken wire.
   - If the PC or USB dies mid-cut, the board keeps the wire on. **The E-stop is the safety**, as wingcut's own docs say.
 - **Isolation:**
   - The 24 V system is **PELV**: 0 V is bonded to PE at one point in the power box.
   - The wire supply floats, and the SSR is opto-isolated.
   - The **USB isolator** keeps PC ground off the controller's 0 V, which removes ground loops and protects the PC.
-  - The Riden option has its own isolator, because its USB ground may be tied to its output negative ([EEVblog](https://www.eevblog.com/forum/testgear/ruideng-riden-rd6006-dc-power-supply/msg2870708/), [Hackaday](https://hackaday.com/2020/03/16/review-the-riden-rd6006w-dc-power-supply-module)).
+  - The Riden has its own USB isolator, because its USB ground may be tied to its output negative ([EEVblog](https://www.eevblog.com/forum/testgear/ruideng-riden-rd6006-dc-power-supply/msg2870708/), [Hackaday](https://hackaday.com/2020/03/16/review-the-riden-rd6006w-dc-power-supply-module)).
   - A dropped wire on the earthed frame does nothing.
 - **Two boxes:** mains, PSUs and the SSR sit in a **steel** box, because printed PETG/ASA is not flame-rated and this machine sits next to polystyrene. The printed box holds only 24 V parts, mounts on the frame, and keeps motor cables short.
 - **Freewheel diode** across the long wire loop, as the DC60 datasheet requires for inductive loads ([datasheet](https://jinzon.url.tw/pdf/crydom_dc60.pdf)).
@@ -145,7 +143,7 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 | ID | Qty | Part | Spec / example P/N / notes | ≈ USD line | Buy in the US (Q = quality · B = budget) |
 |---|---|---|---|---|---|
 | PW1 | 1 | **PSU1: Mean Well LRS-100-24** | 24 V 4.5 A, universal input. [Spec](https://www.meanwell.com/Upload/PDF/LRS-100/LRS-100-SPEC.PDF). Variant B real load ≈3 A, still fine. | 20 | ★ [Q: TRC Electronics (Mean Well distributor)](https://www.trcelectronics.com/products/mean-well-lrs-100-24) $16.48 · [B: Jameco Electronics](https://www.jameco.com/z/LRS-100-24-MEAN-WELL-100-Watt-24V-Single-Output-Enclosed-Power-Supply_2257694.html) $15.00 |
-| PW2 | 1 | **PSU2 (wire): Mean Well LRS-150F-36** | 36 V 4.3 A, adj. 32.4–39.6 V, universal input. [Spec](https://www.meanwell.com/Upload/PDF/LRS-150F/LRS-150F-SPEC.PDF). Not the non-F LRS-150 (selector switch). | 27 | ★ [Q: TRC Electronics (Mean Well distributor)](https://www.trcelectronics.com/products/mean-well-lrs-150f-36) $25.51 · [B: Jameco Electronics](https://www.jameco.com/z/LRS-150F-36-MEAN-WELL-154W-36V-4300mA-Single-Output-Switching-Power-Supply-1U-Profile_2257811.html) $22.60 |
+| PW2 | 1 | **PSU2 (wire): Mean Well LRS-150F-48** | 48 V 3.3 A, universal input, feeds the Riden (RD6006 input ≤ 70 V; gives ≈ 43 V max out). [Spec](https://www.meanwell.com/Upload/PDF/LRS-150F/LRS-150F-SPEC.PDF). Not the non-F LRS-150 (selector switch). | 27 | ★ [Q: TRC Electronics](https://www.trcelectronics.com/products/mean-well-lrs-150f-48) $25.51 (budget: none; buy Mean Well genuine only) |
 | PW3 | 1 | **Isolated DC SSR: Sensata/Crydom DC60S7** (or DC60S5) | Control 3.5–32 VDC (3+/4−); load 3–60 VDC 7 A (1+/2−); t_on 0.1 / t_off 0.3 ms, so 100 Hz PWM is fine. Not the DC60S3 (no margin at 2.7 A). **No no-name "SSR-xxDD".** [RS](https://uk.rs-online.com/web/p/solid-state-relays/7360882) | 50 | ★ [Q: Digi-Key](https://www.digikey.com/en/products/detail/sensata-crydom/DC60S7/221846) $54.16 · [B: Amazon (seller Online Components)](https://www.amazon.com/dp/B00DJUH128) $83.94 |
 | PW4 | 1 | SSR heatsink ≤3 K/W + thermal pad | ≈2–3 W | 4 | [Q: Digi-Key](https://www.digikey.com/en/products/detail/sensata-crydom/HS301/2122802) $35.25 · ★ [B: Amazon (Easycargo store)](https://www.amazon.com/dp/B07B3Y2ZNY) $5.99 |
 | PW5 | 1 | **E-stop** 22 mm mushroom, latching twist-release, **3 NC** (NC1 L, NC2 N, NC3 FluidNC), ≥10 A/250 VAC, finger-safe | Generic XB2/LA38 3-NC ≈ $15. Genuine Schneider XB5AS8442 (1 NC built in) + 2× ZBE102 ≈ $100. **NC3 must be a gold-plated / low-level contact block** (datasheet min. load ≤ 5 V / 1 mA), e.g. **Schneider ZBE1026** (gold-flashed). On variant A it switches **< 1 mA** (plain pull-up input), and silver contacts give random E-stops mid-cut. On B (≈12 mA opto input) silver is acceptable, but gold is still better. | 25 | ★ [Q: Digi-Key](https://www.digikey.com/en/products/detail/schneider-electric/XB5AS8442/17179244) $127.67 · [B: Amazon (genuine Schneider via 3rd-party sellers)](https://www.amazon.com/dp/B07JFN2LJW) $64.93 |
@@ -153,7 +151,7 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 | PW7 | 5 | F1 mains fuses 5×20 slow-blow | **T3.15 A** (230 V) / **T6.3 A** (115 V) | 3 | ★ [Q: Digi-Key](https://www.digikey.com/en/products/detail/schurter-inc/0034-3125/639703) $4.00 · [B: Amazon (BOJACK)](https://www.amazon.com/dp/B07X1KD6WS) $6.99 |
 | PW8 | 1 | IEC C13 mains cord, local plug | | 5 | [Q: Amazon (sold by Amazon.com)](https://www.amazon.com/dp/B000067SLV) $8.92 · ★ [B: Amazon (sold by Amazon.com)](https://www.amazon.com/dp/B07BBTBNR7) $7.99 |
 | PW9 | 2 | **F2:** inline ATO holder + 5 A fuses (24 V). **F3:** inline **5×20 holder + T4 A 250 V** fuses (wire; ATO blades are only 32 V rated). 3 spares each. | | 6 | ★ [Q: Digi-Key](https://www.digikey.com/en/products/detail/littelfuse-inc/01500274Z/29453) $16.29 · [B: Amazon (Wave One Marine / DIGITEN / BOJACK)](https://www.amazon.com/dp/B09F1VQPFC) $23.97 |
-| PW10 | 1 | **DC panel meter V/A, self-powered from the measured line: PZEM-031 type (6.5–100 V, built-in 20 A shunt, 0.01 A resolution)** | Wire current. Must read **0.00 A** after M5, which is the shorted-SSR check. Never power it from 24 V. | 7 | ★ [Q: Amazon (HiLetgo store)](https://www.amazon.com/dp/B079JVGRSL) $14.99 · [B: AliExpress](https://www.aliexpress.us/item/3256809999186422.html) $6.54 |
+| PW10 | 1 | **DC panel meter V/A, self-powered from the measured line: PZEM-031 type (6.5–100 V, built-in 20 A shunt, 0.01 A resolution)** | Independent of the Riden: must read **0.00 A** after M5 (shorted-SSR check). | Wire current. Must read **0.00 A** after M5, which is the shorted-SSR check. Never power it from 24 V. | 7 | ★ [Q: Amazon (HiLetgo store)](https://www.amazon.com/dp/B079JVGRSL) $14.99 · [B: AliExpress](https://www.aliexpress.us/item/3256809999186422.html) $6.54 |
 | PW11 | 1 | **Dummy load 22 Ω 100 W aluminium-clad** | Wire-circuit tests (6.3); screwed to the plate | 8 | [Q: Digi-Key](https://www.digikey.com/en/products/detail/te-connectivity-passive-product/HSC10022RJ/1149656) $18.82 · ★ [B: AliExpress](https://www.aliexpress.us/item/3256806980591158.html) $0.82 |
 | PW12 | 1 | **Steel enclosure ≈ 400 × 300 × 150 mm** with mounting plate ≈ 360 × 260, PE studs on body + lid | PSUs 308 × 97 + DIN band + SSR row fit. Lay it out first. | 40 | [Q: Amazon (VEVOR store, ships from Amazon)](https://www.amazon.com/dp/B09247D9LH) $53.62 · ★ [B: Amazon (QLYYOPSK, sold by Imperial Palace USA)](https://www.amazon.com/dp/B0DKXNGV5Y) $45.99 |
 | PW13 | 2 | Vent grills / louvres | Low intake, high exhaust (PSUs are convection-cooled) | 4 | [Q: Amazon (nVent Hoffman, seller Megamart USA)](https://www.amazon.com/dp/B07DMS5W2M) $124.54 · ★ [B: Amazon (Raneped, sold by Otto-Pro)](https://www.amazon.com/dp/B0FCM6Y7DP) $14.70 |
@@ -161,6 +159,9 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 | PW15 | 7 | Cable glands: **2× M16 (4.5–10 mm)** for PB-24 and PB-SIG, **2× M12 (2–5 mm)** for W-HR and W-HT (or sleeve the leads with adhesive heat-shrink), **1× M12 (3–6.5 mm)** for PE, 2 spare | | 4 | [Q: Digi-Key](https://www.digikey.com/en/products/detail/lapp/S2509/11200370) $19.93 · ★ [B: Amazon (ToolRise)](https://www.amazon.com/dp/B0F387JHTM) $13.50 |
 | PW16 | 2 | **Freewheel diode UF5404** (3 A 400 V) | 1 + spare | 1 | ★ [Q: Digi-Key](https://www.digikey.com/en/products/detail/vishay-general-semiconductor-diodes-division/UF5404-E3-54/2217932) $2.98 · [B: Amazon (Chanzon)](https://www.amazon.com/dp/B079KDYNKT) $6.98 |
 | PW17 | 1 kit | Enclosure hardware: 10× M4×10, 14× M4 nuts, 6 serrated washers M4/M5, 8× M3×5 for the PSUs (**max 4 mm into the PSU**) | DIN rail, SSR/heatsink, dummy load, PE studs, PSUs | 4 | [Q: Amazon (Mywish store)](https://www.amazon.com/dp/B0CQWYFTXC) $17.99 · ★ [B: Amazon (SVLING)](https://www.amazon.com/dp/B0GSDRXGHR) $9.99 |
+| PW18 | 1 | **Riden RD6006** (USB version; RD6006W is fine) | 0–60 V / 0–6 A buck module, constant current, Modbus over USB. Standard: wingcut sets the current and voltage limit, reads V/A, pauses on a broken wire. Mount it in a power-box lid cut-out (check the module's drawing). Menu: USB, 115200, address 1, **power-on output OFF**. | 65 | [Q: Amazon (RuiDeng Official Store)](https://www.amazon.com/dp/B09B9KJ39R) $94.00 · ★ [B: AliExpress](https://www.aliexpress.us/item/3256806709143589.html) $91.60 |
+| PW19 | 1 | **Second ADuM3160 USB isolator** (same type as CC1) | Riden USB → PC. Its USB ground may be tied to its output negative, so it never goes to the PC directly. | 12 | [Q: Amazon (DSD TECH Direct)](https://www.amazon.com/dp/B093LKN3YH) $16.99 · ★ [B: Amazon (EC Buying)](https://www.amazon.com/dp/B0BXDKHNZN) $13.99 |
+| PW20 | 1 | USB cable for the RD6006 (match its port) 1 m + 1 M16 gland | Pass the device end in from outside, or use a split USB grommet | 5 | [Q: Amazon (Monoprice) + Digi-Key (LAPP)](https://www.amazon.com/dp/B07KFQH2ZF) $6.89 · ★ [B: Amazon (Monoprice)](https://www.amazon.com/dp/B07KFQH2ZF) $4.09 |
 
 ### 2.2 Controller side, both variants (CC)
 
@@ -198,14 +199,6 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 | VB8 | 4 | WAGO 221-415 (rack): +24 V bus, 0 V bus (2 linked each) | 7 conductors per bus: PB-24, 4 drivers, 6x feed, rack fan | 4 | ★ [Q: Digi-Key](https://www.digikey.com/en/products/detail/wago-corporation/221-415/13549457) $4.68 · [B: Amazon (WAGO store, sold by DE Supply)](https://www.amazon.com/dp/B01M6Y2UEK) $33.90 |
 | VB9 | 0.5 kg | Extra PETG/ASA for the 6x case + rack (≈0.9 kg total) | | 10 | [Q: Amazon (Polymaker official store)](https://www.amazon.com/dp/B0FG3HMCVY) $15.19 · ★ [B: Amazon (OVERTURE official store)](https://www.amazon.com/dp/B07PGYHYV8) $13.22 |
 
-**Riden option (R), +≈$75 net** (+$82 before dropping PW10):
-- **R1:** Riden RD6006 USB version (≈$65).
-- **R2:** second ADuM3160 USB isolator (≈$12).
-- **R3:** LRS-150F-48 instead of PW2 (same price).
-- **R4:** USB cable + 1 M16 gland (≈$5). Pass the device end in from outside, or use a split USB grommet: a USB-A plug won't pass an M16 gland.
-**Riden option: where to buy (US):** R1: [Q: Amazon (RuiDeng Official Store)](https://www.amazon.com/dp/B09B9KJ39R) $94.00 · ★ [B: AliExpress](https://www.aliexpress.us/item/3256806709143589.html) $91.60; R2: [Q: Amazon (DSD TECH Direct)](https://www.amazon.com/dp/B093LKN3YH) $16.99 · ★ [B: Amazon (EC Buying)](https://www.amazon.com/dp/B0BXDKHNZN) $13.99; R3: [Q: TRC Electronics (Mean Well distributor)](https://www.trcelectronics.com/products/mean-well-lrs-150f-48) $25.51 · ★ [B: Jameco Electronics](https://www.jameco.com/z/LRS-150F-48-MEAN-WELL-158W-48V-3300mA-Single-Output-Switching-Power-Supply-1U-Profile_2257820.html) $22.60; R4: [Q: Amazon (Monoprice) + Digi-Key (LAPP)](https://www.amazon.com/dp/B07KFQH2ZF) $6.89 · ★ [B: Amazon (Monoprice)](https://www.amazon.com/dp/B07KFQH2ZF) $4.09
-- **Mounting:** RD6006 in a cut-out in the power-box lid (its front-panel size; check the module's drawing).
-- Drop PW10: the Riden shows V/A, and wingcut watches the current.
 
 ### 2.5 Cables and wiring consumables (CB), both variants
 
@@ -316,11 +309,11 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 
 ### 2.11 Cost summary
 
-*Line-estimate totals (AliExpress-level pricing). For US retail totals see §0: ★ mix A ≈ $1,610, B ≈ $1,780.*
+*Line-estimate totals (AliExpress-level pricing, before shipping, duty and tax). For real US totals see §0 and §2.13.*
 
 | Group | ≈ USD | ≈ EUR |
 |---|---|---|
-| Power box: mains, wire power, safety (PW), both variants | 233 | 214 |
+| Power box: mains, wire power, safety (PW), both variants | 308 | 283 |
 | Controller side, both variants (CC) | 62 | 57 |
 | Variant A: FluidNC 4x (VA) | 60 | 55 |
 | Variant B: FluidNC 6x + DM542T (VB) | 200 | 184 |
@@ -330,8 +323,8 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 | Wire heads, wire, tension (H) | 48 | 44 |
 | Fasteners (FX) | 45 | 41 |
 | Raw stock (ST) and fabricated parts | 36 | 33 |
-| **Variant A total** (all groups except 2.4) | **≈ 993** | **≈ 914** |
-| **Variant B total** (all groups except 2.3) | **≈ 1133** | **≈ 1042** |
+| **Variant A total** (all groups except 2.4) | **≈ 1068** | **≈ 983** |
+| **Variant B total** (all groups except 2.3) | **≈ 1208** | **≈ 1111** |
 
 ### 2.12 Tighter without losing reliability (≈ −$45)
 1. **3D-print P1–P5 in PETG/ASA** (≥6 walls, 50 % gyroid) instead of cutting aluminium (−$30). Not the tip blocks.
@@ -341,14 +334,52 @@ Every line has a quantity and an approximate **line total** in USD. Buy **2.1 + 
 
 Do **not** cut: the isolated SSR, the E-stop (3 NC), the fuses, the diode, the PE bond, the gold switches, the chain-rated cable, the separate floating wire PSU, the USB isolator, the steel power box.
 
-### 2.13 Workshop safety (not in the total, required)
+### 2.13 Real US cart, variant A (priced 2026-11-08)
+
+Exact cart: [bom/cart-variant-A.csv](../bom/cart-variant-A.csv). It has one row per BOM line with source, seller, exact variant, qty, unit and line price, shipping, link and `verified_live`, plus shipping, duty and tax rows. Rules: authorised sellers for safety-critical or fake-prone parts; AliExpress for everything else; Riden standard.
+
+| | USD |
+|---|---|
+| Authorised parts (TRC: Mean Well ×2 · Digi-Key: SSR, E-stop + ZBE1026, inlet, fuses, holders, Omron, WAGO · Elecrow: 4x board) | 316 |
+| AliExpress (extrusion from a US warehouse, MGN12 official store, brackets, Riden, one Choice order, ≈8 small stores) | 869 |
+| Local (Lowe's: MDF bed, PU, tape) | 78 |
+| Shipping (all sellers) | 97 |
+| Import duties (non-Choice China listings ≈ $117 + Elecrow board ≈ $20) | 137 |
+| Sales tax (state unknown; 7 % used) | 95 (range 0–136) |
+| **Grand total, landed** | **≈ 1,592** (range ≈ 1,380–1,633) |
+
+**Not firm yet:**
+- **78 AliExpress lines are estimates, not live-confirmed.** AliExpress put its item pages behind a CAPTCHA, so they're priced from search cards. Expect ±20 % on that part.
+- **Confirmed live:** all authorised parts, the extrusion, brackets, the Riden, and the MGN12 blocks.
+- **Duty:** the non-Choice duty may already be inside AliExpress's price. Only a signed-in checkout shows it.
+- **Tariffs:** check the rates before ordering. A US–China arrangement is reported to expire on 2026-11-10.
+
+**Stock and price warnings:**
+- **4x board:** out of stock at Elecrow, which blocks variant A.
+- **Schneider ZBE1026:** not stocked at Digi-Key (≈7-week lead). Check Mouser, Newark or Allied, or order early.
+- **Riden:** $59.99 is a new-shopper deal. An existing account pays ≈ $92–94.
+
+**Why it's above $1,200, and what can still be cut** (safety parts and the Riden kept):
+
+| Driver | Cut | Saves ≈ |
+|---|---|---|
+| Import charges on non-Choice listings (cable, aluminium stock, brackets ≈ $50 of duty) | buy those from Choice or US-warehouse listings | $25–40 |
+| MGN12 rails ($111 + ≈ $45 duty) | same rails from a Choice listing with 1200 mm (don't mix blocks from another store) | $30–45 |
+| Steel enclosure (≈ $48 + ≈ $30 freight from China) | US-stock or used 16×12×6 in steel box (keep it earthed) | $20–40 |
+| Fastener and wire kits (≈ $95 across ~20 lines) | one large M3/M4/M5 stainless assortment + one wire kit | $20–30 |
+| Extrusion pack (10 × 2 m, $132) | 5 × 2 m + one 1250 mm bar | $5–10 |
+
+All cuts together give **≈ $1,430–1,500**. Tariffs and sales tax alone (≈ $230) keep this machine above $1,200 in 2026.
+
+
+### 2.14 Workshop safety (not in the total, required)
 - Ducted fume extraction outdoors (100 mm inline fan + hose, ≈$40).
 - CO₂/ABC extinguisher.
 - Smoke detector.
 - Safety glasses when the wire is tensioned.
 - RCD outlet.
 
-### 2.14 Tools (not in the total)
+### 2.15 Tools (not in the total)
 - **Electrical:** multimeter (essential), ferrule crimper, ring-lug crimper, strippers, soldering iron, heat gun.
 - **Machining:** M3/M5 taps, 2.5/4.2 mm drills, countersink, drill press (preferred), hex keys, square, 1 m rule, calipers, level, deburring tool.
 - **Wire:** swaging pliers.
@@ -374,13 +405,14 @@ Do **not** cut: the isolated SSR, the E-stop (3 NC), the fuses, the diode, the P
 | **0 V out** terminal | **PE busbar** (one 1.0 mm² GN/YE, at this one point only) | 1.0 GN/YE | **PELV:** after a mains insulation fault, the 24 V system (USB-C and SMA shells on the printed case) can't float at mains potential. The USB isolator still breaks the PC ground loop. **PSU2 −V stays floating.** |
 | E-stop **NC3** (two terminals) | PB-SIG cores 3 and 4 | 0.5 | Dry contact, goes to the controller's estop input |
 | SSR **3 (+)** / **4 (−)** | PB-SIG core 1 / core 2 | 0.5 | Driven by the controller's MOSFET |
-| PSU2 +V → **F3 T4 A** | **wire+** terminal | 1.0 orange | Wire circuit, kept apart |
+| PSU2 +V / −V | **RD6006 input + / −** | 1.0 orange / black | |
+| RD6006 **out +** → **F3 T4 A** | **wire+** terminal | 1.0 orange | Wire circuit, kept apart |
 | wire+ | W-HR (root lead, CB3 red); meter thin red; **diode cathode** | 1.0 orange | |
 | W-HT (tip lead, CB3 black) | SSR **1 (+)**; **diode anode** | 1.0 orange | Diode across the wire, at the box |
 | SSR **2 (−)** | Meter thick red (shunt in) | 1.0 orange | |
-| Meter thick black (shunt out) | PSU2 **−V** | 1.0 black | |
-| PSU2 −V | **nothing else** | | **OL to 0 V and PE** (6.1, 4.9) |
-| *Riden option:* PSU2 (48 V) +V/−V | RD6006 input +/− | 1.0 | RD6006 **out + → F3 → wire+**; **out − → SSR 2 (−)** (meter removed). RD6006 USB → ADuM3160 → PC. Riden menu: **power-on output OFF**. |
+| Meter thick black (shunt out) | RD6006 **out −** | 1.0 black | |
+| PSU2 −V / RD6006 out − | **nothing else** | | Floating: **OL to 0 V and PE** (6.1, 4.9) |
+| RD6006 USB | PW20 cable → gland → **PW19 isolator** → PC | | Never directly to the PC |
 
 ### 3.2 Cables between the boxes
 
@@ -612,25 +644,23 @@ Install the M3 heat-set inserts, mount the board (and the DM542Ts), the fan, the
 ### 6.2 First power
 0. **Polarity pre-check** (PB-24 controller end still insulated): power on, measure **+24.0 V on the core landed on "+24 V out" (red) against the 0 V core (black)** at the PB-24 end. Power off, wait 30 s, connect it.
 1. Power on: **24 V first, then USB**. PSU1 = 24.0 V (**never trim above 24.0 V**). Board LEDs on. *B:* DM542T green LEDs on.
-2. Panel meter reads ≈36 V, 0 A (SSR off).
+2. Riden display lit (output OFF at power-on). Panel meter 0 A.
 3. Continue with [02-firmware-commissioning.md](02-firmware-commissioning.md) (*B: also [02b-6x-variant.md](02b-6x-variant.md)*): flash, config, motors, limits, homing, tram. Then 6.3.
 
 ### 6.3 Wire circuit (dummy load PW11, before stringing)
-**Hook-up:** power off. Lift W-HR from wire+ and W-HT from SSR 1, insulate them. Connect PW11 between **wire+ and SSR 1** with 2× 0.3 m 1.0 mm² orange + M4 ring lugs. Limits: S1000 ≤ 10 s, S500 ≤ 60 s.
-1. `M3 S1000`: ≈36 V / **≈1.6 A**. `M3 S500` ≈0.8 A, `M3 S200` ≈0.33 A (the meter shows the average). `M5`: **0.00 A**.
+**Hook-up:** power off. Lift W-HR from wire+ and W-HT from SSR 1, insulate them. Connect PW11 between **wire+ and SSR 1** with 2× 0.3 m 1.0 mm² orange + M4 ring lugs. On the Riden (front panel or wingcut): **voltage limit 36 V, current 2.0 A**, output ON. The 22 Ω load can't draw 2.0 A at 36 V, so the Riden runs in CV at 36 V ≈ 1.6 A. Max 10 s per test.
+1. `M3 S1000`: meter and Riden ≈36 V / **≈1.6 A**. `M5`: **0.00 A** within 1 s. (Heat is set by the Riden current, not by S. Always use S1000; PWM would fight the Riden's current loop.)
 2. **SSR-blocking test:** **power off**, lift PB-SIG core 2 at SSR 4 and insulate it, power on, `M3 S1000`: **0 A**. Power off, reconnect.
-3. **Alarm test:** during `M3 S500`, **press a limit switch by hand** → ALARM → 0 A.
-4. **E-stop test (critical):** with `M3 S500` and a jog running, press the E-stop, then **release it**. Expected: 0 A stays, no motion. **A:** state **Alarm** (estop), **or** a new boot banner + ALARM:14 if the board browned out; either way nothing moves or heats until RESET → `$MI` → `$H`. **B:** the 6x runs only from 24 V, so it powers off and reboots; reconnect wingcut, the board is in alarm until `$H`. 02b has the extra estop-pin test for B (lift the io.39 wire).
+3. **Alarm test:** during `M3 S1000`, **press a limit switch by hand** → ALARM → 0 A.
+4. **E-stop test (critical):** with `M3 S1000` and a jog running, press the E-stop, then **release it**. Expected: 0 A stays, no motion. **A:** state **Alarm** (estop), **or** a new boot banner + ALARM:14 if the board browned out; either way nothing moves or heats until RESET → `$MI` → `$H`. **B:** the 6x runs only from 24 V, so it powers off and reboots; reconnect wingcut, the board is in alarm until `$H`. 02b has the extra estop-pin test for B (lift the io.39 wire).
 5. **wingcut Pause test:** in 02 (f), once wingcut is set up.
-6. Set PSU2 to **36.0 V** (trim pot). Restore W-HR/W-HT.
+6. Riden output OFF. Restore W-HR/W-HT.
 
-*No dummy load (2.12 #3):* do steps 1–4 with the strung wire, S ≤ 300, a DMM in series, and no foam near.
+*No dummy load (2.12 #3):* do steps 1–4 with the strung wire, Riden current 1.0 A, and no foam near.
 
-**Expected with the real wire** (1.45 m, 12.6 Ω + ≈0.3 Ω, SSR drop ≈1.2 V):
-- Full on ≈**2.7 A**.
-- Target 2.0–2.3 A DC-equivalent (35–46 W/m) → **S ≈ 550–725**. Put it in wingcut's `heat_on` (placeholder `M3 S600`).
-- Meter = (S/1000) × 2.7 A. Heating current = 2.7 A × √(S/1000).
-- *Riden option:* `heat_on = "M3 S1000"`, current start 2.0 A, tune 2.0–2.3 A.
+**Expected with the real wire** (1.45 m, 12.6 Ω + ≈0.3 Ω):
+- The Riden holds the set current: start at **2.0 A** and tune 2.0–2.3 A (35–46 W/m). That needs ≈ 26–30 V, within the 36 V limit.
+- wingcut `heat_on = "M3 S1000"` (the SSR is fully on); the current lives in wingcut's `[riden] current` (or a panel's `wire_current`).
 - Final tuning by kerf (02).
 
 ---
@@ -648,7 +678,7 @@ Install the M3 heat-set inserts, mount the board (and the DM542Ts), the fan, the
    - Connect. State and positions update, and connecting must not reboot the board.
    - Home, jog both towers, then a **dry run** of one panel (wire cold).
    - Then the Pause/STOP tests from 02 (f) and wingcut's [hardware-bringup.md](https://github.com/andres/wingcut/blob/main/docs/hardware-bringup.md).
-5. **Riden option:** enable `[riden]`, port through the second isolator, `max_voltage = 36`, `current = 2.0`. Riden menu: USB, baud 115200, address 1, power-on output OFF.
+5. **Riden:** `[riden] enabled = true` (already set in the provided TOML), port = the Riden's `/dev/serial/by-id/...` entry through its isolator, `max_voltage = 36`, `current = 2.0`. Riden menu: USB, baud 115200, address 1, power-on output OFF. Test the broken-wire pause (02 (f)).
 6. **First cuts:** kerf test plugs (02 (e)), fill the `kerf` table, then a rectangular panel, then a tapered/swept one.
 
 ---
@@ -658,13 +688,13 @@ Install the M3 heat-set inserts, mount the board (and the DM542Ts), the fan, the
 - **Board power polarity:** neither board has protection. Do 6.2 step 0 after any rework.
 - **Variant A: 24 V before USB**, or the TMC2209s don't get their config. **After every E-stop: RESET → `$MI` → `$H`.**
 - **Variant B: DM542T S2 must be on 5 V** (it ships at 24 V and won't move). **After an E-stop the 6x reboots** (it runs only from 24 V): reconnect wingcut, then `$H`.
-- **False E-stop alarms:** the NC3 contact carries ≈12 mA. Clean or replace the contact block, or use a gold-flashed one.
+- **False E-stop alarms:** NC3 switches < 1 mA on variant A. It must be the gold Schneider ZBE1026 block.
 - **USB isolator:** the board must run on its own 24 V. An isolated USB port can't power it, so the board won't come up from USB alone.
 - **PC or USB lost mid-cut:** the board finishes its buffer and the **wire stays on**. Stay at the machine. The E-stop is the safety.
 - **SSR fails short:** the meter shows current after M5. E-stop and replace. Re-run 6.3 step 2 after any rework.
 - **Metal pulley, uninsulated anchor, or a tip-block screw touching P2** grounds the wire. Plastic wheel + Kevlar + countersunk FR4 are mandatory. 4.9 step 29 must read OL.
 - **Random limit alarms:** silver switches, missing 100 nF caps, or shield not on PE.
-- **Riden option:** USB only through its own isolator. Power-on output OFF.
+- **Riden:** USB only through its own isolator. Power-on output OFF, or it comes back on after an E-stop.
 - **No mains in the printed box, ever.** PETG/ASA isn't flame-rated.
 - **MIG tips:** hand-tight; replace when the bore wears oval.
 - **Don't swap T8×2 for T8×8** (the wire would drop into the foam at power-off).

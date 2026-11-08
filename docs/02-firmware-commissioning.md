@@ -12,7 +12,7 @@ Keys checked against **FluidNC v4.1.1** source. **Zero errors** in the v4.1.1 Li
 4. **No relay:** a shorted SSR keeps the wire hot until E-stop. SSR-blocking test (e) at commissioning and after any wire short; meter not **0.00 A** within 1 s of `M5` → E-stop, replace the SSR.
 5. **Cooling:** `run_amps` is **1.0 A** (below the wiki's 1.2 A no-fan limit); the enclosure fan still blows onto the drivers.
 6. **Verticals 900 mm/min** (7.5 rev/s) is near a 17HS19's 24 V limit → SpreadCycle (`CoolStep`). Stalls → 600.
-7. **Heat numbers.** With SSR drop (≈1.2 V) and leads (≈0.3 Ω), I_full ≈ 2.7 A → S ≈ **550–725** for 2.0–2.3 A, not 490–650. Measure (e).
+7. **Heat = Riden current** (standard): 2.0–2.3 A with `M3 S1000`. The SSR only switches. The YAML keeps a PWM spindle so `M3`/`M5`/alarms drive the SSR.
 
 ## Verified 4x v1.1 I/O map
 
@@ -70,20 +70,14 @@ Each tower homes to its own switch; tenths of a mm twist panels.
 
 ## (e) Wire bring-up
 
-**Numbers (0.4 mm NiCr80, 8.7 Ω/m, 1.45 m):** R ≈ 12.6 Ω. I_full ≈ (V_PSU − 1.2)/(R + 0.3) ≈ **2.7 A** at 36 V. Under PWM the wire heats like I_eq = I_full·√(S/1000), so **S = 1000·(I_target/I_full)²**.
+**Numbers (0.4 mm NiCr80, 8.7 Ω/m, 1.45 m):** R ≈ 12.6 Ω (+ ≈0.3 Ω leads). The **Riden RD6006 (constant current) is standard**: the heat is the Riden current, **2.0–2.3 A** (≈ 26–30 V, 35–46 W/m). The SSR only switches: always `M3 S1000`. PWM below S1000 would fight the Riden's current loop.
 
-| Target I_eq | S at I_full 2.70 A | S at 2.86 A (no SSR/lead loss) |
-|---|---|---|
-| 2.00 A | 549 | 489 |
-| 2.15 A | 634 | 565 |
-| 2.30 A | 726 | 647 |
+1–3. **Dummy-load, SSR-blocking, alarm and E-stop tests:** do them exactly as written in [01 §6.3](01-bom-wiring-assembly.md) (one version only). Expected on the 22 Ω load: Riden in CV at 36 V ≈ **1.6 A** with `M3 S1000`, **0.00 A** within 1 s of `M5`, 0 A with SSR 4 lifted, 0 A on any alarm, and nothing restarts after the E-stop is released.
+4. **Wire** (tensioned, no foam within 50 mm): measure cold R (power off). Riden current 1.0 A → 1.5 A → 2.0 A, `M3 S1000`, 10 s each in air: no glow, no growing sag, and the Riden shows ≈ R × I volts.
+5. **Riden** (LRS-150F-48 → RD6006 → SSR): in the menu set USB, baud 115200, address 1, **power-on output OFF**. USB only through its ADuM3160 isolator. CC **2.0–2.3 A**, voltage limit **36 V** (≈30 V needed; the RD6006 gives ≈43 V max from 48 V).
+6. **Kerf:** 50×50 mm plugs at 120/180/240 mm/min, fixed Riden current; kerf = 50 − side → `kerf` table. Check with a taper plug (150/75 mm chord). Redo per foam batch. Adjust the current, not the speed ([rcKeith](https://rckeith.co.uk/grbl-hotwire-mega-5x-for-cnc-foam-cutters/)).
 
-1–3. **Dummy-load, SSR-blocking, alarm and E-stop tests:** do them exactly as written in [01 §6.3](01-bom-wiring-assembly.md) (one version only, to avoid two different procedures). Expected: the meter ≈ 0.33 / 0.8 / 1.6 A at S200 / S500 / S1000, **0.00 A** after `M5`, 0 A with SSR 4 lifted, 0 A on any alarm, and nothing restarts after the E-stop is released.
-4. **Wire** (tensioned, no foam within 50 mm): measure cold R (power off), compute I_full and S. In air `M3 S400 → S600 → S700`, 10 s each: no glow, no growing sag.
-5. **Riden option** (LRS-150F-48 → RD6006 → SSR): in the menu set USB, baud 115200, address 1, **power-on output OFF**. USB only through the ADuM3160 isolator. Use CC **2.0–2.3 A**, voltage limit **36 V** (≈30 V needed; the RD6006 gives ≈43 V max from 48 V). Use `heat_on = "M3 S1000"` (the SSR fully on; S1000 is effectively DC). Expect ≈28–30 V and 13 Ω on the Riden display.
-6. **Kerf:** 50×50 mm plugs at 120/180/240 mm/min, fixed S; kerf = 50 − side → `kerf` table. Check with a taper plug (150/75 mm chord). Redo per foam batch. "Adjust heat, not speed" ([rcKeith](https://rckeith.co.uk/grbl-hotwire-mega-5x-for-cnc-foam-cutters/)).
-
-**Never change S mid-cut:** an S word with the wire on stops motion for `spinup_ms × ΔS/1000`. wingcut emits one `heat_on` per cut.
+**Never change S mid-cut:** an S word with the wire on stops motion for `spinup_ms × ΔS/1000`. wingcut emits one `heat_on` (`M3 S1000`) per cut; change heat through the Riden current between cuts.
 
 ## (f) wingcut setup and tests
 
@@ -91,7 +85,7 @@ Follow wingcut's [hardware-bringup.md](https://github.com/andres/wingcut/blob/ma
 
 1. Open [wingcut-machine.toml](../config/wingcut-machine.toml) (Machine tab or `--machine`). Set `tower_spacing` (measured), `limits`, `heat_on`. Linux: `sudo usermod -aG dialout $USER`. Use `/dev/serial/by-id/…` paths so the board and the Riden can't swap.
 2. **Connect:** the banner must not repeat on connect. State and positions update about 5×/s. Jog directions as in (b). **Home**: wingcut sees FluidNC's `[MSG:Homed:…]` and clears "not homed". Pre-flight must show *work offset zero*.
-3. **Pause** ([FluidNC v4.1.1 Protocol.cpp](https://github.com/bdring/FluidNC/blob/v4.1.1/FluidNC/src/Protocol.cpp)): wingcut sends `!`, then `0x9E` at `Hold:0`; FluidNC calls `spinDown()`. On `~` it logs `Restoring spindle`, re-applies M3 S, waits `spinup_ms × S/1000` (1.8 s at S600), then moves. **No extra config.** Test on the dummy load in a real (not dry) run: Pause → stop, 0 A; Resume → current, ≈2 s, motion. A bare feed hold from another sender leaves the wire hot.
+3. **Pause** ([FluidNC v4.1.1 Protocol.cpp](https://github.com/bdring/FluidNC/blob/v4.1.1/FluidNC/src/Protocol.cpp)): wingcut sends `!`, then `0x9E` at `Hold:0`; FluidNC calls `spinDown()`. On `~` it logs `Restoring spindle`, re-applies M3 S, waits `spinup_ms × S/1000` (3 s at S1000), then moves. **No extra config.** Test on the dummy load in a real (not dry) run: Pause → stop, 0 A; Resume → current, ≈3 s, motion. A bare feed hold from another sender leaves the wire hot.
 4. **STOP:** motion stops, 0 A, no alarm. **USB unplugged** in a dry run: reported; board finishes its buffer. **E-stop with USB in (variant A; for B see 02b):** a new `Grbl 4.1…` banner on release = ESP32 rebooted (`must_home` protects you). No banner = it stayed on USB power: always press **RESET** (top note 2).
 5. **Dry run:** block placed per the panel, wire parked in front, pre-flight green, time ≈ estimate.
 6. **Riden:** Connect supply → model and live V/A. **Apply current** shows on the display. Air cut with the wire hot: **lower V-set on the Riden front panel to 10 V**. The current falls to ≈0.8 A, below 50 % of 2.0 A, and within ≈1 s wingcut must pause the cut and turn the output off. After the cut the output is off.

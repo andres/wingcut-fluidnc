@@ -197,7 +197,7 @@ PWM:
   direction_pin: NO_PIN
   disable_with_s0: false
   s0_with_disable: true     # M5 forces duty 0
-  spinup_ms: 3000           # reheat time before motion; scales with S: S600 -> 1.8 s, S1000 -> 3 s
+  spinup_ms: 3000           # reheat time before motion (3 s at S1000; Riden standard, always S1000)
   spindown_ms: 0
   tool_num: 0
   speed_map: 0=0% 1000=100% # S0..S1000 = 0..100 % duty. S1000 = DC (Riden option)
